@@ -2,10 +2,6 @@ const std = @import("std");
 
 const Allocator = std.mem.Allocator;
 
-// pub const Control = enum(u8) {
-//     reset
-// }
-
 const ansi_reset = "\u{001b}[0m";
 
 /// Bright Foreground Colors.
@@ -19,6 +15,7 @@ pub const BColor = enum(u8) {
     cyan,
     white,
 
+    /// Format text using a Bright Foreground Color.
     pub fn format(self: BColor, alloc: Allocator, text: []const u8) ![]const u8 {
         return formatCode(@enumToInt(self), alloc, text);
     }
@@ -35,6 +32,7 @@ pub const Color = enum(u8) {
     cyan,
     white,
 
+    /// Format text using a Standard Foreground Color.
     pub fn format(self: Color, alloc: Allocator, text: []const u8) ![]const u8 {
         return formatCode(@enumToInt(self), alloc, text);
     }
@@ -51,6 +49,7 @@ pub const BgBColor = enum(u8) {
     cyan,
     white,
 
+    /// Format text using a Bright Background Color.
     pub fn format(self: BColor, alloc: Allocator, text: []const u8) ![]const u8 {
         return formatCode(@enumToInt(self), alloc, text);
     }
@@ -67,12 +66,14 @@ pub const BgColor = enum(u8) {
     cyan,
     white,
 
+    /// Format text using a Standard Background Color.
     pub fn format(self: Color, alloc: Allocator, text: []const u8) ![]const u8 {
         return formatCode(@enumToInt(self), alloc, text);
     }
 };
 
 /// Format text with the given escape code.
+/// A reset code is appended at the end.
 pub fn formatCode(code: u8, alloc: Allocator, text: []const u8) ![]const u8 {
     var prefix_buffer: [6]u8 = undefined;
     const prefix = std.fmt.bufPrint(&prefix_buffer, "\u{001b}[{d}m", .{code}) catch unreachable;
