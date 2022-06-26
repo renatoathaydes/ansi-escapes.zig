@@ -1,6 +1,6 @@
 /// Demo Application
 const std = @import("std");
-const ansi = @import("./ansi-escapes.zig");
+const ansi = @import("ansi-escapes.zig");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 const Color = ansi.Color;
@@ -43,7 +43,26 @@ fn selectPrintFn(enum_type: anytype) printFn {
     }.print;
 }
 
+fn showWelcomeMessage() !void {
+    return stdout.writeAll(
+        \\ansi-escapes.zig Demo CLI
+        \\
+        \\It echo backs the text you enter, but styles it if it contains the name of a color.
+        \\Lines starting with '/' are commands.
+        \\
+        \\Available commands:
+        \\  - /back          - style the background color
+        \\  - /bright        - style foreground, bright color
+        \\  - /bright back   - style background, bright color
+        \\  - /default       - style the foreground color
+        \\  - /quit          - quit (Ctrl+d also quits)
+        \\
+    );
+}
+
 pub fn main() !void {
+    try showWelcomeMessage();
+
     var allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer allocator.deinit();
     var alloc = allocator.allocator();

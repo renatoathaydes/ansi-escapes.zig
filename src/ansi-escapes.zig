@@ -76,7 +76,7 @@ pub const BgColor = enum(u8) {
 /// A reset code is appended at the end.
 pub fn formatCode(code: u8, alloc: Allocator, text: []const u8) ![]const u8 {
     var prefix_buffer: [6]u8 = undefined;
-    const prefix = std.fmt.bufPrint(&prefix_buffer, "\u{001b}[{d}m", .{code}) catch unreachable;
+    const prefix = try std.fmt.bufPrint(&prefix_buffer, "\u{001b}[{d}m", .{code});
 
     const size = comptime prefix.len + ansi_reset.len;
 
