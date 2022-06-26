@@ -4,6 +4,9 @@ const ansi = @import("./ansi-escapes.zig");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 const Color = ansi.Color;
+const BColor = ansi.BColor;
+const BgColor = ansi.BgColor;
+const BgBColor = ansi.BgBColor;
 
 const stdin = std.io.getStdIn().reader();
 const stdout = std.io.getStdOut().writer();
@@ -20,34 +23,24 @@ fn writeAndFree(alloc: Allocator, bytes: []const u8) !void {
 }
 
 const printFn = fn (alloc: Allocator, buffer: []const u8) anyerror!void;
-const printFnSelector = fn (buffer: []const u8) printFn;
-
-fn printColor(comptime color: Color) printFn {
-    return struct {
-        fn doit(alloc: Allocator, buffer: []const u8) !void {
-            const text = try color.format(alloc, buffer);
-            defer alloc.free(text);
-            return stdout.writeAll(text);
-        }
-    }.doit;
-}
 
 fn printSimple(_: Allocator, buffer: []const u8) !void {
     return stdout.writeAll(buffer);
 }
 
-fn selectPrintFn() printFnSelector {
+fn selectPrintFn(enum_type: anytype) printFn {
+    const T = @typeInfo(enum_type);
     return struct {
-        fn doit(buffer: []const u8) printFn {
-            const T = @typeInfo(Color);
+        fn print(alloc: Allocator, buffer: []const u8) anyerror!void {
             inline for (T.Enum.fields) |field| {
-                if (std.mem.startsWith(u8, buffer, field.name)) {
-                    return printColor(@intToEnum(Color, field.value));
+                if (std.mem.containsAtLeast(u8, buffer, 1, field.name)) {
+                    const b = try ansi.formatCode(field.value, alloc, buffer);
+                    return writeAndFree(alloc, b);
                 }
             }
-            return printSimple;
+            try printSimple(alloc, buffer);
         }
-    }.doit;
+    }.print;
 }
 
 pub fn main() !void {
@@ -56,16 +49,36 @@ pub fn main() !void {
     var alloc = allocator.allocator();
     const max_line_size = 1000 * 1024;
 
-    const print = selectPrintFn();
+    const printC = selectPrintFn(Color);
+    const printB = selectPrintFn(BColor);
+    const printBgC = selectPrintFn(BgColor);
+    const printBgB = selectPrintFn(BgBColor);
+
+    var print = printC;
 
     try writeAndFree(alloc, try prompt(alloc));
 
     while (try stdin.readUntilDelimiterOrEofAlloc(alloc, '\n', max_line_size)) |buffer| {
         defer alloc.free(buffer);
-        try print(buffer)(alloc, buffer);
-        try stdout.writeAll("\n");
+        if (std.mem.startsWith(u8, buffer, "/")) {
+            const cmd = buffer[1..];
+            if (std.mem.eql(u8, cmd, "bright")) {
+                print = printB;
+            } else if (std.mem.eql(u8, cmd, "bright back")) {
+                print = printBgB;
+            } else if (std.mem.eql(u8, cmd, "back")) {
+                print = printBgC;
+            } else if (std.mem.eql(u8, cmd, "default")) {
+                print = printC;
+            } else if (std.mem.eql(u8, cmd, "quit")) {
+                break;
+            } else {
+                try stdout.writeAll("Unknown command.\n");
+            }
+        } else {
+            try print(alloc, buffer);
+            try stdout.writeAll("\n");
+        }
         try writeAndFree(alloc, try prompt(alloc));
     }
-
-    try stdout.print("\nGoodbye!\n", .{});
 }
