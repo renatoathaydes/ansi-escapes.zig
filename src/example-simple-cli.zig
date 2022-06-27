@@ -93,7 +93,7 @@ pub fn main() !void {
             try writeAndFree(alloc, try ansi.style(alloc, buffer, .{
                 .fg = fgColor,
                 .bg = bgColor,
-                .styles = if (style) |st| &[1]Style{st} else &no_style,
+                .styles = if (style) |st| &.{st} else &no_style,
             }));
             try stdout.writeAll("\n");
         }
