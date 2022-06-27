@@ -75,3 +75,11 @@ fast_blinking
 reverse
 hidden
 ```
+
+## Demo
+
+To run the [demo CLI](src/example-simple-cli.zig):
+
+```bash
+zig build run
+```
