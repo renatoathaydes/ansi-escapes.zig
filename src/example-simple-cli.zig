@@ -4,9 +4,7 @@ const ansi = @import("ansi-escapes.zig");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 const Color = ansi.Color;
-const BColor = ansi.BColor;
-const BgColor = ansi.BgColor;
-const BgBColor = ansi.BgBColor;
+const Style = ansi.DisplayStyle;
 
 const stdin = std.io.getStdIn().reader();
 const stdout = std.io.getStdOut().writer();
@@ -22,25 +20,18 @@ fn writeAndFree(alloc: Allocator, bytes: []const u8) !void {
     try stdout.writeAll(bytes);
 }
 
-const printFn = fn (alloc: Allocator, buffer: []const u8) anyerror!void;
-
-fn printSimple(_: Allocator, buffer: []const u8) !void {
-    return stdout.writeAll(buffer);
-}
-
-fn selectPrintFn(enum_type: anytype) printFn {
-    const T = @typeInfo(enum_type);
+fn selectEnum(comptime t: type) fn (buffer: []const u8) anyerror!?t {
+    const T = @typeInfo(t);
     return struct {
-        fn print(alloc: Allocator, buffer: []const u8) anyerror!void {
+        fn choose(buffer: []const u8) anyerror!?t {
             inline for (T.Enum.fields) |field| {
                 if (std.mem.containsAtLeast(u8, buffer, 1, field.name)) {
-                    const b = try ansi.formatCode(field.value, alloc, buffer);
-                    return writeAndFree(alloc, b);
+                    return @intToEnum(t, field.value);
                 }
             }
-            try printSimple(alloc, buffer);
+            return null;
         }
-    }.print;
+    }.choose;
 }
 
 fn showWelcomeMessage() !void {
@@ -51,10 +42,9 @@ fn showWelcomeMessage() !void {
         \\Lines starting with '/' are commands.
         \\
         \\Available commands:
-        \\  - /back          - style the background color
-        \\  - /bright        - style foreground, bright color
-        \\  - /bright back   - style background, bright color
-        \\  - /default       - style the foreground color
+        \\  - /bg <color>    - the background color
+        \\  - /fg <color>    - the foreground color
+        \\  - /st <style>    - the style
         \\  - /quit          - quit (Ctrl+d also quits)
         \\
     );
@@ -68,12 +58,10 @@ pub fn main() !void {
     var alloc = allocator.allocator();
     const max_line_size = 1000 * 1024;
 
-    const printC = selectPrintFn(Color);
-    const printB = selectPrintFn(BColor);
-    const printBgC = selectPrintFn(BgColor);
-    const printBgB = selectPrintFn(BgBColor);
-
-    var print = printC;
+    var fgColor: ?Color = null;
+    var bgColor: ?Color = null;
+    var style: ?Style = null;
+    const no_style = [0]Style{};
 
     try writeAndFree(alloc, try prompt(alloc));
 
@@ -81,21 +69,32 @@ pub fn main() !void {
         defer alloc.free(buffer);
         if (std.mem.startsWith(u8, buffer, "/")) {
             const cmd = buffer[1..];
-            if (std.mem.eql(u8, cmd, "bright")) {
-                print = printB;
-            } else if (std.mem.eql(u8, cmd, "bright back")) {
-                print = printBgB;
-            } else if (std.mem.eql(u8, cmd, "back")) {
-                print = printBgC;
-            } else if (std.mem.eql(u8, cmd, "default")) {
-                print = printC;
+            if (std.mem.startsWith(u8, cmd, "fg ")) {
+                fgColor = try selectEnum(Color)(buffer);
+                if (fgColor == null) {
+                    try stdout.writeAll("Invalid color, unset fg!\n");
+                }
+            } else if (std.mem.startsWith(u8, cmd, "bg ")) {
+                bgColor = try selectEnum(Color)(buffer);
+                if (fgColor == null) {
+                    try stdout.writeAll("Invalid color, unset bg!\n");
+                }
+            } else if (std.mem.startsWith(u8, cmd, "st ")) {
+                style = try selectEnum(Style)(buffer);
+                if (style == null) {
+                    try stdout.writeAll("Invalid style, unset st!\n");
+                }
             } else if (std.mem.eql(u8, cmd, "quit")) {
                 break;
             } else {
                 try stdout.writeAll("Unknown command.\n");
             }
         } else {
-            try print(alloc, buffer);
+            try writeAndFree(alloc, try ansi.style(alloc, buffer, .{
+                .fg = fgColor,
+                .bg = bgColor,
+                .styles = if (style) |st| &[1]Style{st} else &no_style,
+            }));
             try stdout.writeAll("\n");
         }
         try writeAndFree(alloc, try prompt(alloc));

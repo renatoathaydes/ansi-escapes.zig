@@ -15,7 +15,7 @@ pub fn build(b: *std.build.Builder) void {
     const test_step = b.step("test", "Run library tests");
     test_step.dependOn(&main_tests.step);
 
-    _ = b.step("demo", "Run a simple demo");
+    _ = b.step("demo", "Build a simple demo");
     const demo = b.addExecutable("demo", "src/example-simple-cli.zig");
     demo.setBuildMode(mode);
     demo.install();
@@ -26,6 +26,6 @@ pub fn build(b: *std.build.Builder) void {
         run_cmd.addArgs(args);
     }
 
-    const run_step = b.step("run", "Run the app");
+    const run_step = b.step("run", "Run the simple demo");
     run_step.dependOn(&run_cmd.step);
 }
