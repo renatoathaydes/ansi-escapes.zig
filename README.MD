@@ -46,6 +46,32 @@ pub fn main() !void {
 }
 ```
 
+## List of colors
+
+```
+black
+red
+green
+yellow
+blue
+magenta
+cyan
+white
+```
+
 Colors starting with `b_` are _bright_ colors.
 
 Example: `b_blue` is bright blue.
+
+## List of styles:
+
+```
+bold
+faint
+italic
+underline
+blinking
+fast_blinking
+reverse
+hidden
+```
