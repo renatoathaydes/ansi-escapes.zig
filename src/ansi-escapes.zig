@@ -41,12 +41,12 @@ pub const Color = enum(u8) {
 
     /// Apply Standard Color to the text foreground.
     pub fn apply(self: Color, alloc: Allocator, text: []const u8) ![]const u8 {
-        return styleText(&[_]u8{self.fg()}, alloc, text);
+        return styleText(alloc, &[_]u8{self.fg()}, text);
     }
 
     /// Apply Standard Color to the text background.
     pub fn applyBg(self: Color, alloc: Allocator, text: []const u8) ![]const u8 {
-        return styleText(&[_]u8{self.bg()}, alloc, text);
+        return styleText(alloc, &[_]u8{self.bg()}, text);
     }
 
     /// Code for this color when used as foreground.
@@ -228,7 +228,7 @@ test "findCodes (fg+bg+styles)" {
 /// A 0 value represents a "break" between different code sequences.
 /// For example, the array [1, 2, 0, 3] represents two code sequences,
 /// [1, 2] and [3] and would result in 'ESC[1;2mESC[3m...'.
-fn styleText(code_sequences: []const u8, alloc: Allocator, text: []const u8) ![]const u8 {
+fn styleText(alloc: Allocator, code_sequences: []const u8, text: []const u8) ![]const u8 {
     if (code_sequences.len == 0) {
         return text;
     }
@@ -304,22 +304,22 @@ fn styleText(code_sequences: []const u8, alloc: Allocator, text: []const u8) ![]
 pub fn style(alloc: Allocator, text: []const u8, options: Options) ![]const u8 {
     const all_codes = try findCodes(alloc, options);
     defer alloc.free(all_codes);
-    return styleText(all_codes, alloc, text);
+    return styleText(alloc, all_codes, text);
 }
 
 test "styleText" {
     const styles = [3]u8{ 3, 1, 2 };
     const alloc = std.testing.allocator;
 
-    var example1 = try styleText(styles[0..0], alloc, "");
+    var example1 = try styleText(alloc, styles[0..0], "");
     defer alloc.free(example1);
     try expectEqualSlices(u8, "", example1);
 
-    var example2 = try styleText(styles[0..1], alloc, "Italic");
+    var example2 = try styleText(alloc, styles[0..1], "Italic");
     defer alloc.free(example2);
     try expectEqualSlices(u8, "\u{001b}[3mItalic" ++ reset, example2);
 
-    var example3 = try styleText(styles[0..], alloc, "Italic, bold and faint");
+    var example3 = try styleText(alloc, styles[0..], "Italic, bold and faint");
     defer alloc.free(example3);
     try expectEqualSlices(u8, "\u{001b}[3;1;2mItalic, bold and faint" ++ reset, example3);
 }
