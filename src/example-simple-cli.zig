@@ -12,7 +12,7 @@ const stdout = std.io.getStdOut().writer();
 var prompt_value: []const u8 = "User> ".*[0..];
 
 fn prompt(alloc: Allocator) ![]const u8 {
-    return try Color.blue.format(alloc, prompt_value);
+    return try Color.blue.apply(alloc, prompt_value);
 }
 
 fn writeAndFree(alloc: Allocator, bytes: []const u8) !void {
@@ -53,9 +53,7 @@ fn showWelcomeMessage() !void {
 pub fn main() !void {
     try showWelcomeMessage();
 
-    var allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer allocator.deinit();
-    var alloc = allocator.allocator();
+    var alloc = std.testing.allocator;
     const max_line_size = 1000 * 1024;
 
     var fgColor: ?Color = null;
@@ -76,7 +74,7 @@ pub fn main() !void {
                 }
             } else if (std.mem.startsWith(u8, cmd, "bg ")) {
                 bgColor = try selectEnum(Color)(buffer);
-                if (fgColor == null) {
+                if (bgColor == null) {
                     try stdout.writeAll("Invalid color, unset bg!\n");
                 }
             } else if (std.mem.startsWith(u8, cmd, "st ")) {

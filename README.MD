@@ -13,11 +13,13 @@ const std = @import("std");
 const ansi = @import("ansi-escapes.zig");
 const stdout = std.io.getStdOut().writer();
 
+const yellow = ansi.Color.yellow.format;
+
 pub fn main() !void {
     const alloc = std.testing.allocator;
     const buffer = "Basic yellow text...\n";
 
-    const formatted = try ansi.Color.yellow.format(alloc, buffer);
+    const formatted = try yellow(alloc, buffer);
     defer alloc.free(formatted);
     
     try stdout.writeAll(formatted);
