@@ -20,7 +20,7 @@ pub const DisplayStyle = enum(u8) {
     strikeThrough,
 };
 
-/// Standard Foreground Colors.
+/// Standard Colors.
 pub const Color = enum(u8) {
     black = 30,
     red,
@@ -39,27 +39,76 @@ pub const Color = enum(u8) {
     b_cyan,
     b_white,
 
-    /// Format text using a Standard Foreground Color.
-    pub fn format(self: Color, alloc: Allocator, text: []const u8) ![]const u8 {
-        const codes = [_]u8{@enumToInt(self)};
-        return styleText(&codes, alloc, text);
+    /// Apply Standard Color to the text foreground.
+    pub fn apply(self: Color, alloc: Allocator, text: []const u8) ![]const u8 {
+        return styleText(&[_]u8{self.fg()}, alloc, text);
     }
 
+    /// Apply Standard Color to the text background.
+    pub fn applyBg(self: Color, alloc: Allocator, text: []const u8) ![]const u8 {
+        return styleText(&[_]u8{self.bg()}, alloc, text);
+    }
+
+    /// Code for this color when used as foreground.
     pub fn fg(self: Color) u8 {
         return @enumToInt(self);
     }
 
+    /// Code for this color when used as background.
     pub fn bg(self: Color) u8 {
         return self.fg() + 10;
     }
 
-    pub fn bright(self: Color) Color {
+    /// Convert this color to the bright version of it.
+    /// If this color is already bright, returns itself.
+    pub fn toBright(self: Color) Color {
         if (@enumToInt(self) >= @enumToInt(Color.b_black)) {
             return self;
         }
         return @intToEnum(Color, @enumToInt(self) + 60);
     }
 };
+
+test "Color.apply" {
+    const alloc = std.testing.allocator;
+    var example1 = try Color.black.apply(alloc, "Hello");
+    defer alloc.free(example1);
+    try expectEqualSlices(u8, "\u{001b}[30mHello" ++ reset, example1);
+
+    var example2 = try Color.red.apply(alloc, "Foo Bar");
+    defer alloc.free(example2);
+    try expectEqualSlices(u8, "\u{001b}[31mFoo Bar" ++ reset, example2);
+
+    var example3 = try Color.b_white.apply(alloc, "");
+    defer alloc.free(example3);
+    try expectEqualSlices(u8, "\u{001b}[97m" ++ reset, example3);
+}
+
+test "Color.applyBg" {
+    const alloc = std.testing.allocator;
+    var example1 = try Color.black.applyBg(alloc, "Hello");
+    defer alloc.free(example1);
+    try expectEqualSlices(u8, "\u{001b}[40mHello" ++ reset, example1);
+
+    var example2 = try Color.red.applyBg(alloc, "Foo Bar");
+    defer alloc.free(example2);
+    try expectEqualSlices(u8, "\u{001b}[41mFoo Bar" ++ reset, example2);
+
+    var example3 = try Color.b_white.applyBg(alloc, "");
+    defer alloc.free(example3);
+    try expectEqualSlices(u8, "\u{001b}[107m" ++ reset, example3);
+}
+
+test "Color.toBright" {
+    const alloc = std.testing.allocator;
+    var example1 = try Color.red.toBright().apply(alloc, "normal color");
+    defer alloc.free(example1);
+    try expectEqualSlices(u8, "\u{001b}[91mnormal color" ++ reset, example1);
+
+    var example2 = try Color.b_green.toBright().apply(alloc, "already bright color");
+    defer alloc.free(example2);
+    try expectEqualSlices(u8, "\u{001b}[92malready bright color" ++ reset, example2);
+}
 
 fn codeToString(code: u8, buffer: []u8) std.fmt.BufPrintError![]u8 {
     return std.fmt.bufPrint(buffer, "{d}", .{code});
@@ -256,21 +305,6 @@ pub fn style(alloc: Allocator, text: []const u8, options: Options) ![]const u8 {
     const all_codes = try findCodes(alloc, options);
     defer alloc.free(all_codes);
     return styleText(all_codes, alloc, text);
-}
-
-test "Color.format" {
-    const alloc = std.testing.allocator;
-    var example1 = try Color.black.format(alloc, "Hello");
-    defer alloc.free(example1);
-    try expectEqualSlices(u8, "\u{001b}[30mHello" ++ reset, example1);
-
-    var example2 = try Color.red.format(alloc, "Foo Bar");
-    defer alloc.free(example2);
-    try expectEqualSlices(u8, "\u{001b}[31mFoo Bar" ++ reset, example2);
-
-    var example3 = try Color.white.format(alloc, "");
-    defer alloc.free(example3);
-    try expectEqualSlices(u8, "\u{001b}[37m" ++ reset, example3);
 }
 
 test "styleText" {
