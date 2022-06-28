@@ -13,7 +13,7 @@ const std = @import("std");
 const ansi = @import("ansi-escapes.zig");
 const stdout = std.io.getStdOut().writer();
 
-const yellow = ansi.Color.yellow.format;
+const yellow = ansi.Color.yellow.apply;
 
 pub fn main() !void {
     const alloc = std.testing.allocator;
