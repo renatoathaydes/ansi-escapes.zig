@@ -53,8 +53,13 @@ fn showWelcomeMessage() !void {
 pub fn main() !void {
     try showWelcomeMessage();
 
-    var alloc = std.testing.allocator;
-    const max_line_size = 1000 * 1024;
+    const max_line_size = 1024;
+
+    const alloc = init: {
+        var memory: [max_line_size + 256]u8 = undefined;
+        var allocator = std.heap.FixedBufferAllocator.init(&memory);
+        break :init allocator.allocator();
+    };
 
     var fgColor: ?Color = null;
     var bgColor: ?Color = null;
