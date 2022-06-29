@@ -1,11 +1,17 @@
 const std = @import("std");
+const utils = @import("./utils.zig");
+const rgb = @import("./rgb.zig");
+
 const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqual = std.testing.expectEqual;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
 const Allocator = std.mem.Allocator;
 
-const reset = "\u{001b}[m";
+const reset = utils.reset;
+
+/// A 24-bit color with Red, Green and Blue components.
+pub const RGBColor = rgb.RGBColor;
 
 /// Display style. Many modifiers can be applied at the same time.
 pub const DisplayStyle = enum(u8) {
@@ -18,6 +24,11 @@ pub const DisplayStyle = enum(u8) {
     reverse,
     hidden,
     strikeThrough,
+
+    /// Apply DisplayStyle to the text.
+    pub fn apply(self: DisplayStyle, alloc: Allocator, text: []const u8) ![]const u8 {
+        return styleText(alloc, &[_]u8{@enumToInt(self)}, text);
+    }
 };
 
 /// Standard Colors.
@@ -108,39 +119,6 @@ test "Color.toBright" {
     var example2 = try Color.b_green.toBright().apply(alloc, "already bright color");
     defer alloc.free(example2);
     try expectEqualSlices(u8, "\u{001b}[92malready bright color" ++ reset, example2);
-}
-
-fn codeToString(code: u8, buffer: []u8) std.fmt.BufPrintError![]u8 {
-    return std.fmt.bufPrint(buffer, "{d}", .{code});
-}
-
-test "codeToString" {
-    var buf: [3]u8 = undefined;
-
-    try std.testing.expectEqualSlices(u8, "0", try codeToString(0, &buf));
-    try std.testing.expectEqualSlices(u8, "48", try codeToString(48, &buf));
-    try std.testing.expectEqualSlices(u8, "109", try codeToString(109, &buf));
-    try std.testing.expectEqualSlices(u8, "255", try codeToString(255, &buf));
-    try std.testing.expectEqualSlices(u8, "2", try codeToString(2, &buf));
-}
-
-fn digitLen(code: u8) usize {
-    if (code < 10) {
-        return 1;
-    } else if (code < 100) {
-        return 2;
-    } else {
-        return 3;
-    }
-}
-
-test "digitLen" {
-    try expectEqual(@as(usize, 1), digitLen(0));
-    try expectEqual(@as(usize, 1), digitLen(1));
-    try expectEqual(@as(usize, 2), digitLen(10));
-    try expectEqual(@as(usize, 2), digitLen(99));
-    try expectEqual(@as(usize, 3), digitLen(100));
-    try expectEqual(@as(usize, 3), digitLen(255));
 }
 
 pub const Options = struct {
@@ -246,7 +224,7 @@ fn styleText(alloc: Allocator, code_sequences: []const u8, text: []const u8) ![]
             total_size += 3;
             first_in_sequence = true;
         } else {
-            total_size += digitLen(code);
+            total_size += utils.digitLen(code);
             if (!first_in_sequence) {
                 total_size += 1; // the ';' between codes
             }
@@ -275,7 +253,7 @@ fn styleText(alloc: Allocator, code_sequences: []const u8, text: []const u8) ![]
             first_in_sequence = true;
         } else {
             var buf = [_]u8{ 0, 0, 0 };
-            const c = try codeToString(code, &buf);
+            const c = try utils.codeToString(code, &buf);
             std.mem.copy(u8, buffer[index..], c);
             index += c.len;
             // lookahead to see if the separator is needed

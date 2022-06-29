@@ -38,7 +38,7 @@ fn showWelcomeMessage() !void {
     return stdout.writeAll(
         \\ansi-escapes.zig Demo CLI
         \\
-        \\It echo backs the text you enter, but styles it if it contains the name of a color.
+        \\It echo backs the text you enter, styling it with the settings you change with commands shown below.
         \\Lines starting with '/' are commands.
         \\
         \\Available commands:
