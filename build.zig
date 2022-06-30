@@ -15,9 +15,13 @@ pub fn build(b: *std.build.Builder) void {
     const rgb_tests = b.addTest("src/rgb.zig");
     rgb_tests.setBuildMode(mode);
 
+    const color8_tests = b.addTest("src/color8.zig");
+    rgb_tests.setBuildMode(mode);
+
     const test_step = b.step("test", "Run library tests");
     test_step.dependOn(&main_tests.step);
     test_step.dependOn(&rgb_tests.step);
+    test_step.dependOn(&color8_tests.step);
 
     _ = b.step("demo", "Build a simple demo");
     const demo = b.addExecutable("demo", "src/example-simple-cli.zig");

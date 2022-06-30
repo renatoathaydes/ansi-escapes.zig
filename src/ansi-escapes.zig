@@ -1,6 +1,7 @@
 const std = @import("std");
 const utils = @import("./utils.zig");
 const rgb = @import("./rgb.zig");
+const c8 = @import("./color8.zig");
 
 const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqual = std.testing.expectEqual;
@@ -11,7 +12,12 @@ const Allocator = std.mem.Allocator;
 const reset = utils.reset;
 
 /// A 24-bit color with Red, Green and Blue components.
+/// This is not widely supported in terminals.
+/// Prefer to use basic Color or Color8 instead.
 pub const RGBColor = rgb.RGBColor;
+
+/// A 8-bit color.
+pub const Color8 = c8.Color8;
 
 /// Display style. Many modifiers can be applied at the same time.
 pub const DisplayStyle = enum(u8) {

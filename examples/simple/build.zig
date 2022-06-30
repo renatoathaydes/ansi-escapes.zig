@@ -6,7 +6,7 @@ pub fn build(b: *std.build.Builder) void {
     const mode = b.standardReleaseOptions();
 
     _ = b.step("demo", "Build a simple demo");
-    const demo = b.addExecutable("simple", "simple.zig");
+    const demo = b.addExecutable("simple", "color8.zig");
     demo.setBuildMode(mode);
     demo.addPackagePath("ansi-escapes", "../../src/ansi-escapes.zig");
     demo.install();

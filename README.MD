@@ -6,6 +6,8 @@ This allows printing colorized text and background, and adding simple text style
 
 ## Usage
 
+### Basic colors
+
 Basic, one color text:
 
 ```zig
@@ -25,6 +27,81 @@ pub fn main() !void {
     try stdout.writeAll(formatted);
 }
 ```
+
+The `apply` methods applies the color to the foreground (the text itself).
+
+To colorize the background, use `applyBg`.
+
+> All color types have `apply` and `applyBg` methods.
+
+List of basic colors:
+
+```
+black
+red
+green
+yellow
+blue
+magenta
+cyan
+white
+```
+
+Colors starting with `b_` are _bright_ colors.
+
+Example: `b_blue` is bright blue.
+
+### Color8 (8-bit colors)
+
+For a total of 256 different colors (with values from 0 to 255), use `Color8`:
+
+```zig
+const color = ansi.Color8{.value = 42};
+const colorized = try color.apply(alloc, text);
+```
+
+Check [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit) for a table of 8-bit colors, or run the demo to display it:
+
+```bash
+cd simple && zig build run
+```
+
+### RGBColor (24-bit colors)
+
+> Notice that not many terminals support 24-bit colors.
+
+If you want even more colors, try `RGBColor`.
+
+```zig
+const color = ansi.RBGColor{.red = 42, .green = 43, .blue = 44};
+const colorized = try color.applyBg(alloc, text);
+```
+
+### DisplayStyle
+
+You can style text using `DisplayStyle`.
+
+```zig
+const bold = ansi.Displaystyle.bold;
+const bold_text = try bold.apply(alloc, text);
+```
+
+List of styles:
+
+```
+bold
+faint
+italic
+underline
+blinking
+fast_blinking
+reverse
+hidden
+```
+
+### The `style` function
+
+The `style` function allows setting multiple styles and a color simultaneously.
 
 Set fg (foreground color), bg (background color) and some styles:
 
@@ -48,37 +125,7 @@ pub fn main() !void {
 }
 ```
 
-## List of colors
-
-```
-black
-red
-green
-yellow
-blue
-magenta
-cyan
-white
-```
-
-Colors starting with `b_` are _bright_ colors.
-
-Example: `b_blue` is bright blue.
-
-## List of styles:
-
-```
-bold
-faint
-italic
-underline
-blinking
-fast_blinking
-reverse
-hidden
-```
-
-## Demo
+## Demos
 
 To run the [demo CLI](src/example-simple-cli.zig):
 
