@@ -90,7 +90,7 @@ const colorized = try color.apply(alloc, text);
 Run the demo to display all `Color8` varieties on your terminal:
 
 ```bash
-cd simple && zig build run
+cd examples/ && zig build color8
 ```
 
 The result should look like this:
