@@ -21,7 +21,7 @@ pub fn build(b: *std.build.Builder) void {
 fn addExe(b: *std.build.Builder, mode: std.builtin.Mode, name: []const u8, path: []const u8) *std.build.RunStep {
     const exe = b.addExecutable(name, path);
     exe.setBuildMode(mode);
-    exe.addPackagePath("ansi-escapes", "../../src/ansi-escapes.zig");
+    exe.addPackagePath("ansi-escapes", "../src/ansi-escapes.zig");
     exe.install();
 
     const run_cmd = exe.run();

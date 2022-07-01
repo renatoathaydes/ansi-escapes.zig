@@ -12,7 +12,7 @@ pub fn main() !void {
     const formatted = try yellow(alloc, buffer);
     defer alloc.free(formatted);
     try stdout.writeAll(formatted);
-    
+
     const buffer2 = "Magenta background!!!\n";
     const formatted2 = try magenta_bg(alloc, buffer2);
     defer alloc.free(formatted2);

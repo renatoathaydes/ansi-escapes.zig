@@ -57,7 +57,7 @@ try stdout.writeAll(formatted2);
 
 > All color types have `apply` and `applyBg` methods.
 
-Result of running both statements above (see [simple.zig](examples/simple/simple.zig)):
+Result of running both statements above (see [simple.zig](examples/simple.zig)):
 
 ![Screenshot of yellow text and magenta background on terminal](docs/screenshot-simple.png)
 
@@ -132,7 +132,7 @@ hidden
 
 ### The `style` function
 
-The `style` function allows setting multiple styles and a color simultaneously.
+The `style` function allows setting multiple styles and foreground/background color simultaneously.
 
 Set fg (foreground color), bg (background color) and some styles:
 
@@ -158,8 +158,10 @@ pub fn main() !void {
 
 ## Demos
 
-To run the [demo CLI](src/example-simple-cli.zig):
+To run the demos, cd into `examples` and run `zig build <demo>`.
 
-```bash
-zig build run
-```
+Demos:
+
+- [cli](examples/cli.zig)
+- [simple](examples/simple.zig)
+- [color8](examples/color8.zig)
