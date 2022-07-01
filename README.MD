@@ -60,11 +60,15 @@ const color = ansi.Color8{.value = 42};
 const colorized = try color.apply(alloc, text);
 ```
 
-Check [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit) for a table of 8-bit colors, or run the demo to display it:
+Run the demo to display all `Color8` varieties on your terminal:
 
 ```bash
 cd simple && zig build run
 ```
+
+The result should look like this:
+
+![All 8-bit colors displayed on terminal](docs/screenshot-color8.png)
 
 ### RGBColor (24-bit colors)
 
