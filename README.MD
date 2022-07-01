@@ -6,13 +6,27 @@ This allows printing colorized text and background, and adding simple text style
 
 ## Usage
 
+### Importing into your project
+
+Add the path to the ansi-escapes library to your `build.zig` file:
+
+```zig
+lib.addPackagePath("ansi-escapes", "lib/ansi-escapes.zig/ansi-escapes.zig");
+```
+
+Import `ansi-escapes` into your zig code:
+
+```zig
+const ansi = @import("ansi-escapes");
+```
+
 ### Basic colors
 
-Basic, one color text:
+To use one of the traditional, basic colors:
 
 ```zig
 const std = @import("std");
-const ansi = @import("ansi-escapes.zig");
+const ansi = @import("ansi-escapes");
 const stdout = std.io.getStdOut().writer();
 
 const yellow = ansi.Color.yellow.apply;
@@ -30,9 +44,22 @@ pub fn main() !void {
 
 The `apply` methods applies the color to the foreground (the text itself).
 
-To colorize the background, use `applyBg`.
+To colorize the background, use `applyBg`:
+
+```zig
+const magenta_bg = ansi.Color.magenta.applyBg;
+
+const buffer2 = "Magenta background!!!\n";
+const formatted2 = try magenta_bg(alloc, buffer2);
+defer alloc.free(formatted2);
+try stdout.writeAll(formatted2);
+```
 
 > All color types have `apply` and `applyBg` methods.
+
+Result of running both statements above (see [simple.zig](examples/simple/simple.zig)):
+
+![Screenshot of yellow text and magenta background on terminal](docs/screenshot-simple.png)
 
 List of basic colors:
 
