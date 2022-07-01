@@ -1,6 +1,6 @@
 /// Demo Application
 const std = @import("std");
-const ansi = @import("ansi-escapes.zig");
+const ansi = @import("ansi-escapes");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 const Color = ansi.Color;

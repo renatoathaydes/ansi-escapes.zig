@@ -12,6 +12,10 @@ pub fn build(b: *std.build.Builder) void {
     var color8 = addExe(b, mode, "color8", "color8.zig");
     var run_color8 = b.step("color8", "Run the color8 demo");
     run_color8.dependOn(&color8.step);
+
+    var cli = addExe(b, mode, "cli", "cli.zig");
+    var run_cli = b.step("cli", "Run the cli demo");
+    run_cli.dependOn(&cli.step);
 }
 
 fn addExe(b: *std.build.Builder, mode: std.builtin.Mode, name: []const u8, path: []const u8) *std.build.RunStep {
