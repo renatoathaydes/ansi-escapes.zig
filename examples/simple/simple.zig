@@ -1,16 +1,20 @@
 const std = @import("std");
 const ansi = @import("ansi-escapes");
+const stdout = std.io.getStdOut().writer();
 
-const red = ansi.Color.red.apply;
+const yellow = ansi.Color.yellow.apply;
+const magenta_bg = ansi.Color.magenta.applyBg;
 
 pub fn main() !void {
     const alloc = std.testing.allocator;
-    const hello = try red(alloc, "Hello in RED!");
-    defer alloc.free(hello);
-    std.debug.print("{s}\n", .{hello});
+    const buffer = "Basic yellow text...\n";
 
-    const rgb = ansi.RGBColor{ .green = 255 };
-    const bye = try rgb.apply(alloc, "Bye in RGB Color (does not work in all terminals)!");
-    defer alloc.free(bye);
-    std.debug.print("{s}\n", .{bye});
+    const formatted = try yellow(alloc, buffer);
+    defer alloc.free(formatted);
+    try stdout.writeAll(formatted);
+    
+    const buffer2 = "Magenta background!!!\n";
+    const formatted2 = try magenta_bg(alloc, buffer2);
+    defer alloc.free(formatted2);
+    try stdout.writeAll(formatted2);
 }

@@ -5,18 +5,26 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    _ = b.step("demo", "Build a simple demo");
-    const demo = b.addExecutable("simple", "color8.zig");
-    demo.setBuildMode(mode);
-    demo.addPackagePath("ansi-escapes", "../../src/ansi-escapes.zig");
-    demo.install();
+    var simple = addExe(b, mode, "simple", "simple.zig");
+    var run_simple = b.step("simple", "Run the simple demo");
+    run_simple.dependOn(&simple.step);
 
-    const run_cmd = demo.run();
+    var color8 = addExe(b, mode, "color8", "color8.zig");
+    var run_color8 = b.step("color8", "Run the color8 demo");
+    run_color8.dependOn(&color8.step);
+}
+
+fn addExe(b: *std.build.Builder, mode: std.builtin.Mode, name: []const u8, path: []const u8) *std.build.RunStep {
+    const exe = b.addExecutable(name, path);
+    exe.setBuildMode(mode);
+    exe.addPackagePath("ansi-escapes", "../../src/ansi-escapes.zig");
+    exe.install();
+
+    const run_cmd = exe.run();
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);
     }
 
-    const run_step = b.step("run", "Run the simple demo");
-    run_step.dependOn(&run_cmd.step);
+    return run_cmd;
 }
