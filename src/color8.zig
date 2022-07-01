@@ -34,9 +34,8 @@ fn styleText(alloc: Allocator, color: Color8, fgbg: FgOrBg, text: []const u8) ![
     // ESC[38;5;⟨v⟩m
     var buffer = try alloc.alloc(u8, 8 + color.len() + text.len + reset.len);
     const c = @enumToInt(fgbg);
-    
-    return std.fmt.bufPrint(buffer, "\u{001b}[{d};5;{d}m{s}" ++ reset,
-                         .{c, color.value, text});
+
+    return std.fmt.bufPrint(buffer, "\u{001b}[{d};5;{d}m{s}" ++ reset, .{ c, color.value, text });
 }
 
 test "Color8" {
@@ -46,11 +45,11 @@ test "Color8" {
     defer alloc.free(example1);
     try expectEqualSlices(u8, "\u{001b}[38;5;0mfoo\u{001b}[m", example1);
 
-    var example2 = try (Color8{.value = 42}).apply(alloc, "bar");
+    var example2 = try (Color8{ .value = 42 }).apply(alloc, "bar");
     defer alloc.free(example2);
     try expectEqualSlices(u8, "\u{001b}[38;5;42mbar\u{001b}[m", example2);
 
-    var example3 = try (Color8{.value = 255}).applyBg(alloc, "zort");
+    var example3 = try (Color8{ .value = 255 }).applyBg(alloc, "zort");
     defer alloc.free(example3);
     try expectEqualSlices(u8, "\u{001b}[48;5;255mzort\u{001b}[m", example3);
 }
