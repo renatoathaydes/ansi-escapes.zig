@@ -34,7 +34,7 @@ pub fn main() !void {
 
     var text: [5]u8 = undefined;
     var i: u8 = 0;
-    while (i < 255) : (i += 1) {
+    while (i < 256) : (i += 1) {
         if (i != 0 and i % 16 == 0) {
             try stdout.writeAll("\n");
         }
@@ -43,6 +43,7 @@ pub fn main() !void {
         const square = try (if (is_bg) c8.applyBg(alloc, text[0..]) else c8.apply(alloc, text[0..]));
         defer alloc.free(square);
         try stdout.writeAll(square);
+        if (i == 255) break; // avoid overflow
     }
     try stdout.writeAll("\n");
 }
